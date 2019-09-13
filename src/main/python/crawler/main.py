@@ -1,13 +1,40 @@
 import requests
 import sys
 import json
-from crawler.main import dao
+from bs4 import BeautifulSoup
+import dao.crawlerDAO as dao
 
-print(sys.version)
-url = "https://api.cotacoes.uol.com/asset/interday/list/years/?format=JSON&fields=price,high,low,open,volume,close,bid,ask,change,pctChange,date&item=484&"
-req = requests.get(url, headers = {"Referer": "https://economia.uol.com.br/cotacoes/bolsas/acoes/bvsp-bovespa/petr4-sa"})
-if req.status_code == 200:
-    print('Requisição bem sucedida!')
-    jsonFormat = req.json()
-    marketData = jsonFormat['docs']
-    print(marketData[0])
+def translateDate(data):
+    english = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    portuguese = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+    mes = portuguese.index(str(str(data)[3:6]))
+    stringValue = str(data).replace(portuguese[mes], english[mes])
+    return stringValue
+
+def readPageNmInstrumentFind(id_instrument, nm_instrument_find, current):
+    url = "https://br.advfn.com/bolsa-de-valores/bovespa/{}/historico/mais-dados-historicos?current={}&Date1=07/09/12&Date2=07/09/19".format(str(nm_instrument_find), current)
+    page = requests.get(url)
+    soup = BeautifulSoup(page.text, 'html.parser')
+    result = soup.find_all("tr", {"class":"result"})
+    count = 0
+    print(url)
+    for (row) in result:
+        children = row.findChildren("td" , recursive=False)
+        data = translateDate(children[0].decode_contents(formatter="html")).strip()
+        abertura = children[1].decode_contents(formatter="html").replace(",", ".")
+        fechamento = children[2].decode_contents(formatter="html").replace(",", ".")
+        variacao = children[3].decode_contents(formatter="html").replace(",", ".")
+        minima = children[5].decode_contents(formatter="html").replace(",", ".")
+        maxima = children[6].decode_contents(formatter="html").replace(",", ".")
+        volume = children[7].decode_contents(formatter="html").replace(".", "")
+        dao.insertCotacao(id_instrument, data, abertura, fechamento, variacao, minima, maxima, volume)
+        count = count + 1
+    return count
+
+instruments = dao.getInstrumentsToSearch()
+for (instrument) in instruments:
+    current = 0
+    finish = 0
+    while(finish != 1):
+        finish = readPageNmInstrumentFind(instrument.id_instrument, instrument.nm_find_instrument, current)
+        current = current + 1
