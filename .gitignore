@@ -1,2 +1,3 @@
 .vscode
 Pipfile
+src/main/python/price_predict/*.png

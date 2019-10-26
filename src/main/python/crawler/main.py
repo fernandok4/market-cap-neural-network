@@ -12,7 +12,7 @@ def translateDate(data):
     return stringValue
 
 def readPageNmInstrumentFind(id_instrument, nm_instrument_find, current):
-    url = "https://br.advfn.com/bolsa-de-valores/bovespa/{}/historico/mais-dados-historicos?current={}&Date1=07/09/18&Date2=29/09/19".format(str(nm_instrument_find), current)
+    url = "https://br.advfn.com/bolsa-de-valores/bovespa/{}/historico/mais-dados-historicos?current={}&Date1=01/01/12&Date2=25/10/19".format(str(nm_instrument_find), current)
     page = requests.get(url)
     soup = BeautifulSoup(page.text, 'html.parser')
     result = soup.find_all("tr", {"class":"result"})
@@ -21,11 +21,11 @@ def readPageNmInstrumentFind(id_instrument, nm_instrument_find, current):
     for (row) in result:
         children = row.findChildren("td" , recursive=False)
         data = translateDate(children[0].decode_contents(formatter="html")).strip()
-        abertura = children[1].decode_contents(formatter="html").replace(",", ".")
-        fechamento = children[2].decode_contents(formatter="html").replace(",", ".")
-        variacao = children[3].decode_contents(formatter="html").replace(",", ".")
-        minima = children[5].decode_contents(formatter="html").replace(",", ".")
-        maxima = children[6].decode_contents(formatter="html").replace(",", ".")
+        fechamento = children[1].decode_contents(formatter="html").replace(",", ".")
+        variacao = children[2].decode_contents(formatter="html").replace(",", ".")
+        abertura = children[4].decode_contents(formatter="html").replace(",", ".")
+        maxima = children[5].decode_contents(formatter="html").replace(",", ".")
+        minima = children[6].decode_contents(formatter="html").replace(",", ".")
         volume = children[7].decode_contents(formatter="html").replace(".", "")
         dao.insertCotacao(id_instrument, data, abertura, fechamento, variacao, minima, maxima, volume)
         count = count + 1
