@@ -12,7 +12,7 @@ def translateDate(data):
     return stringValue
 
 def readPageNmInstrumentFind(id_instrument, nm_instrument_find, current):
-    url = "https://br.advfn.com/bolsa-de-valores/bovespa/{}/historico/mais-dados-historicos?current={}&Date1=07/09/12&Date2=07/09/19".format(str(nm_instrument_find), current)
+    url = "https://br.advfn.com/bolsa-de-valores/bovespa/{}/historico/mais-dados-historicos?current={}&Date1=07/09/18&Date2=29/09/19".format(str(nm_instrument_find), current)
     page = requests.get(url)
     soup = BeautifulSoup(page.text, 'html.parser')
     result = soup.find_all("tr", {"class":"result"})
